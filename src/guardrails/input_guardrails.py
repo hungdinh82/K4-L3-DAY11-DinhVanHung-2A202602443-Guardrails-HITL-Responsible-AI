@@ -19,6 +19,10 @@ from google.adk.plugins import base_plugin
 from google.adk.agents.invocation_context import InvocationContext
 
 from core.config import ALLOWED_TOPICS, BLOCKED_TOPICS
+from guardrails.secret_detection import (
+    contains_known_secret_variant,
+    decode_decimal_codepoints,
+)
 
 # Quyết định rõ ràng — tránh đảo nghĩa True/False
 InputStatus = Literal["ALLOW", "BLOCK"]
@@ -73,15 +77,22 @@ def detect_injection(user_input: str) -> InputStatus:
     """
     normalized = _fold_text(user_input)
 
+    if contains_known_secret_variant(user_input):
+        return "BLOCK"
+    decoded = decode_decimal_codepoints(user_input)
+    if decoded and contains_known_secret_variant(decoded):
+        return "BLOCK"
+
     # Credential-extraction attacks often avoid classic jailbreak words such
     # as "ignore" or "reveal". Require both a protected-data marker and an
     # extraction directive so ordinary banking questions are not overblocked.
     protected_marker = re.search(
-        r"\b(?:credentials?|admin[_\s-]*password|api[_\s-]*key|"
+        r"\b(?:credentials?|password|mat\s+khau|admin[_\s-]*password|api[_\s-]*key|"
         r"db[_\s-]*host|database\s+host|connection\s+string|passphrase|"
         r"service\s+key|secret(?:s)?|configuration|cau\s+hinh|"
         r"internal\s+variable|"
-        r"internal\s+(?:operations\s+)?note|"
+        r"internal\s+(?:operations\s+)?note|ghi\s+chu\s+ky\s+thuat\s+noi\s+bo|"
+        r"may\s+chu\s+du\s+lieu|khoa\s+ket\s+noi|sk|"
         r"thong\s+tin\s+xac\s+thuc|xac\s+thuc|endpoint|endpoint\s+noi\s+bo|"
         r"internal\s+endpoint)\b",
         normalized,
@@ -96,7 +107,9 @@ def detect_injection(user_input: str) -> InputStatus:
         r"include|list|gom|repeat|reproduce|lap\s+lai|toan\s+bo|"
         r"token|character|ky\s+tu|array|mang|reverse|reversed|"
         r"dao\s+nguoc|dien|fill|fictional|story|real\s+system|"
-        r"raw|dump|starting|bat\s+dau)\b",
+        r"raw|dump|starting|bat\s+dau|acrostic|poem|bai\s+tho|"
+        r"chu\s+cai\s+dau|dau\s+moi\s+dong|giau\s+chu|"
+        r"chu\s+in\s+hoa|email)\b",
         normalized,
         re.IGNORECASE,
     )
@@ -119,6 +132,7 @@ def detect_injection(user_input: str) -> InputStatus:
         r"\b(?:repeat|reproduce|lap\s+lai|toan\s+bo\s+van\s+ban).{0,120}\b(?:above|phia\s+tren|you\s+are|system)\b",
         r"(?:<\|im_start\|>|<\|im_end\|>|<think>)",
         r"\b(?:disable|disabled|completely\s+disabled|tat|vo\s+hieu\s+hoa).{0,80}\b(?:security|guardrail|filter|policy|layer|lop\s+bao\s+ve)\b",
+        r"\b(?:unicode\s+scalar|codepoints?|full[-\s]?width).{0,300}\b(?:render|glyph|decimal|row)\b",
     )
 
     for pattern in injection_patterns:

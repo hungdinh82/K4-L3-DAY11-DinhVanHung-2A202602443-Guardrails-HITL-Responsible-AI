@@ -6,6 +6,7 @@ Checkpoint 2 — Output Guardrails
 """
 import re
 import textwrap
+import unicodedata
 
 from google.genai import types
 from google.adk.agents import llm_agent
@@ -13,6 +14,7 @@ from google.adk import runners
 from google.adk.plugins import base_plugin
 
 from core.utils import chat_with_agent
+from guardrails.secret_detection import contains_known_secret_variant
 
 
 # ============================================================
@@ -37,7 +39,8 @@ def content_filter(response: str) -> dict:
         dict with 'safe', 'issues', and 'redacted' keys
     """
     issues = []
-    redacted = response
+    normalized_response = unicodedata.normalize("NFKC", response or "")
+    redacted = normalized_response
 
     # PII patterns to check
     PII_PATTERNS = {
@@ -51,10 +54,14 @@ def content_filter(response: str) -> dict:
     }
 
     for name, pattern in PII_PATTERNS.items():
-        matches = re.findall(pattern, response, re.IGNORECASE)
+        matches = re.findall(pattern, normalized_response, re.IGNORECASE)
         if matches:
             issues.append(f"{name}: {len(matches)} found")
             redacted = re.sub(pattern, "[REDACTED]", redacted, flags=re.IGNORECASE)
+
+    if contains_known_secret_variant(response):
+        issues.append("encoded_secret: transformed secret found")
+        redacted = "[REDACTED]"
 
     return {
         "safe": len(issues) == 0,
