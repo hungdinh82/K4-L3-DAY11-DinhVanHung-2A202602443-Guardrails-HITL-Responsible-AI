@@ -133,4 +133,14 @@ pip install -r requirements.txt
 Điền `.env`: `OPENROUTER_API_KEY` + `RED_TEAM_PROVIDER=openai|gemini` (và key tương ứng).  
 Rồi mở [`CHECKPOINTS.md`](CHECKPOINTS.md) và làm lần lượt Checkpoint 1 → 5.
 
+### Chạy giao diện demo có chatbot
+
+```bash
+.venv/bin/python demo/server.py
+```
+
+Mở [http://localhost:8080/demo/](http://localhost:8080/demo/). Prompt hợp lệ sẽ
+nhận phản hồi thật từ Blue Agent; prompt injection bị chặn trước khi gọi mô hình.
+Không dùng `python3 -m http.server` cho demo chatbot vì server tĩnh không có API.
+
 Nộp theo [`SUBMISSION.md`](SUBMISSION.md) · Quy định: [`RULES.md`](RULES.md).
