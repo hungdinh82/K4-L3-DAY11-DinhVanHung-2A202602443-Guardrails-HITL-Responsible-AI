@@ -78,7 +78,10 @@ def detect_injection(user_input: str) -> InputStatus:
     # extraction directive so ordinary banking questions are not overblocked.
     protected_marker = re.search(
         r"\b(?:credentials?|admin[_\s-]*password|api[_\s-]*key|"
-        r"db[_\s-]*host|database\s+host|internal\s+(?:operations\s+)?note|"
+        r"db[_\s-]*host|database\s+host|connection\s+string|passphrase|"
+        r"service\s+key|secret(?:s)?|configuration|cau\s+hinh|"
+        r"internal\s+variable|"
+        r"internal\s+(?:operations\s+)?note|"
         r"thong\s+tin\s+xac\s+thuc|xac\s+thuc|endpoint|endpoint\s+noi\s+bo|"
         r"internal\s+endpoint)\b",
         normalized,
@@ -90,7 +93,10 @@ def detect_injection(user_input: str) -> InputStatus:
         r"authoritative\s+source|copied\s+directly|json|return\s+only|"
         r"chi\s+tra\s+ve|configuration|cung\s+cap|chinh\s+xac|"
         r"khoi\s+phuc|provide|lap\s+bang|kiem\s+ke|chi\s+tiet|"
-        r"include|list|gom)\b",
+        r"include|list|gom|repeat|reproduce|lap\s+lai|toan\s+bo|"
+        r"token|character|ky\s+tu|array|mang|reverse|reversed|"
+        r"dao\s+nguoc|dien|fill|fictional|story|real\s+system|"
+        r"raw|dump|starting|bat\s+dau)\b",
         normalized,
         re.IGNORECASE,
     )
@@ -110,6 +116,9 @@ def detect_injection(user_input: str) -> InputStatus:
         r"\b(?:base64|rot13)\b.*\b(?:secret|password|prompt|api\s*key)\b",
         r"\bbo\s+qua\s+(?:moi\s+)?(?:huong\s+dan|chi\s+dan)\b",
         r"\btiet\s+lo\s+(?:mat\s+khau|api\s*key|system\s*prompt|bi\s*mat)\b",
+        r"\b(?:repeat|reproduce|lap\s+lai|toan\s+bo\s+van\s+ban).{0,120}\b(?:above|phia\s+tren|you\s+are|system)\b",
+        r"(?:<\|im_start\|>|<\|im_end\|>|<think>)",
+        r"\b(?:disable|disabled|completely\s+disabled|tat|vo\s+hieu\s+hoa).{0,80}\b(?:security|guardrail|filter|policy|layer|lop\s+bao\s+ve)\b",
     )
 
     for pattern in injection_patterns:
