@@ -62,14 +62,29 @@ class OpenAIRunner:
             return block_msg
 
         client = self._client()
-        completion = client.chat.completions.create(
-            model=self.model,
-            messages=[
+        request = {
+            "model": self.model,
+            "messages": [
                 {"role": "system", "content": agent.instruction},
                 {"role": "user", "content": user_message},
             ],
-            temperature=self.temperature,
-        )
+            "temperature": self.temperature,
+        }
+        try:
+            completion = client.chat.completions.create(**request)
+        except Exception as exc:
+            # OpenRouter currently exposes the lab's locked Liquid model through
+            # its ``:free`` route only. Keep the configured model invariant while
+            # retrying that routing variant when the canonical route is absent.
+            if (
+                self.provider == "openrouter"
+                and getattr(exc, "status_code", None) == 404
+                and not self.model.endswith(":free")
+            ):
+                request["model"] = f"{self.model}:free"
+                completion = client.chat.completions.create(**request)
+            else:
+                raise
         text = (completion.choices[0].message.content or "").strip()
 
         for hook in self.output_hooks:
