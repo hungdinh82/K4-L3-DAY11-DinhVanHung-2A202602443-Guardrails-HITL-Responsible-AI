@@ -79,7 +79,7 @@ def detect_injection(user_input: str) -> InputStatus:
     protected_marker = re.search(
         r"\b(?:credentials?|admin[_\s-]*password|api[_\s-]*key|"
         r"db[_\s-]*host|database\s+host|internal\s+(?:operations\s+)?note|"
-        r"thong\s+tin\s+xac\s+thuc|xac\s+thuc|endpoint\s+noi\s+bo|"
+        r"thong\s+tin\s+xac\s+thuc|xac\s+thuc|endpoint|endpoint\s+noi\s+bo|"
         r"internal\s+endpoint)\b",
         normalized,
         re.IGNORECASE,
@@ -89,7 +89,8 @@ def detect_injection(user_input: str) -> InputStatus:
         r"(?:credential|recovery)|do\s+not\s+(?:redact|mask|summarize|encode)|"
         r"authoritative\s+source|copied\s+directly|json|return\s+only|"
         r"chi\s+tra\s+ve|configuration|cung\s+cap|chinh\s+xac|"
-        r"khoi\s+phuc|provide)\b",
+        r"khoi\s+phuc|provide|lap\s+bang|kiem\s+ke|chi\s+tiet|"
+        r"include|list|gom)\b",
         normalized,
         re.IGNORECASE,
     )
