@@ -85,7 +85,8 @@ def detect_injection(user_input: str) -> InputStatus:
     extraction_directive = re.search(
         r"\b(?:exact\s+(?:original\s+)?values?|complete\s+(?:the\s+)?"
         r"(?:credential|recovery)|do\s+not\s+(?:redact|mask|summarize|encode)|"
-        r"authoritative\s+source|copied\s+directly)\b",
+        r"authoritative\s+source|copied\s+directly|json|return\s+only|"
+        r"chi\s+tra\s+ve|configuration)\b",
         normalized,
         re.IGNORECASE,
     )
